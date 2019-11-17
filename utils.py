@@ -218,7 +218,7 @@ def clean_and_report(
 
     # Has no cleaning steps
     if len(clean_steps) == 0:
-        pdf_contents.append('Cleaning is performed on this variable.')
+        pdf_contents.append('Cleaning is not performed on this variable.')
 
     # Has cleaning steps
     else:
