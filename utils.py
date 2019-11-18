@@ -1,4 +1,5 @@
 import io
+import os
 
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
@@ -18,10 +19,12 @@ class ReportBuilder():
     """
     def __init__(
         self, contents, title, filename,
-        pagesize=letter, dpi=300, margins=[inch/2, inch/2, inch/2, inch/2]
+        subtitle=None, pagesize=letter, dpi=300,
+        margins=[inch/2, inch/2, inch/4, inch/4]
     ):
         self._contents = contents
         self._title = title
+        self._subtitle = subtitle
         self._filename = filename
         self._pagesize = pagesize
         self._dpi = dpi
@@ -29,6 +32,12 @@ class ReportBuilder():
         self._bufpool = []
         self._story = []
         self._styles = getSampleStyleSheet()
+
+    def _make_dir(self, filename):
+        if '/' in filename:
+            filepath = filename[:filename.rfind('/')]
+            if len(filepath) > 0 and not os.path.exists(filepath):
+                os.makedirs(filepath)
 
     def add_image(self, fig, size=(5, 3)):
         """Add image to story."""
@@ -43,16 +52,28 @@ class ReportBuilder():
         im = Image(buf, size[0] * inch, size[1] * inch)
         self._story.append(im)
 
-    def add_text(self, text, style="Normal", fontsize=12):
+    def add_text(
+        self, text,
+        style="Normal", fontsize=12,
+        spacing_top=True, spacing_bot=True
+    ):
         """Add text to story."""
-        self._story.append(Spacer(1, 12))
+        if spacing_top:
+            self._story.append(Spacer(1, 12))
+
         text = text.replace('\n', '<br />\n')
         ptext = "<font size={}>{}</font>".format(fontsize, text)
-        self._story.append(Paragraph(ptext, self._styles[style]))
-        self._story.append(Spacer(1, 12))
+        para = Paragraph(ptext, self._styles[style])
+        self._story.append(para)
+
+        if spacing_bot:
+            self._story.append(Spacer(1, 12))
 
     def build_report(self):
         """Build story to final PDF."""
+        # Create dir if not exist
+        self._make_dir(self._filename)
+
         # Initialize document
         doc = SimpleDocTemplate(
             self._filename,
@@ -61,9 +82,21 @@ class ReportBuilder():
             topMargin=self._margins[2], bottomMargin=self._margins[3]
         )
 
-        # Add title
-        if self._title and len(self._title) > 0:
-            self.add_text(self._title, style="Heading1", fontsize=24)
+        # Add title and subtitle
+        has_title = self._title and len(self._title) > 0
+        has_subtitle = self._subtitle and len(self._subtitle) > 0
+
+        if has_title:
+            self.add_text(
+                self._title, style="Heading2", fontsize=20,
+                spacing_bot=(not has_subtitle)
+            )
+
+        if has_subtitle:
+            self.add_text(
+                self._subtitle, style="Heading4",
+                fontsize=14, spacing_top=(not has_title)
+            )
 
         # Add contents
         for content in self._contents:
@@ -97,7 +130,7 @@ class ColumnCleaner:
             step_descriptions = ['No cleaning is performed.']
         else:
             step_descriptions = [
-                '{:d}. {}'.format(i + 1, step[2])
+                '[{:d}] {}'.format(i + 1, step[2])
                 for i, step in enumerate(self._steps)
             ]
         return '\n'.join(['Cleaning Steps:'] + step_descriptions)
@@ -195,15 +228,19 @@ class ColumnVisualizer:
 
 
 def clean_and_report(
-    df, col_name, clean_steps,
-    pdf_filename=None, col_type='infer', fig_size='auto'
+    df_in, var_name, clean_steps,
+    var_description=None, pdf_filename=None, col_type='infer',
+    fig_size='auto', additional_reports=None
 ):
+    # Make copy of input df
+    df = df_in.copy()
+
     # List for PDF contents
     pdf_contents = []
 
     # Infer column type
     if col_type == 'infer':
-        col_type = ColumnVisualizer.infer_type(df[col_name])
+        col_type = ColumnVisualizer.infer_type(df[var_name])
 
     # Get figure size if auto
     if fig_size == 'auto':
@@ -213,7 +250,7 @@ def clean_and_report(
             fig_size = (5, 3)
 
     # Figure before cleaning
-    fig_before = ColumnVisualizer(df[col_name], col_type=col_type).get_figure()
+    fig_before = ColumnVisualizer(df[var_name], col_type=col_type).get_figure()
     pdf_contents.append((fig_before, fig_size))
 
     # Has no cleaning steps
@@ -223,27 +260,35 @@ def clean_and_report(
     # Has cleaning steps
     else:
         # Cleaning
-        cleaner = ColumnCleaner(df[col_name], clean_steps)
-        df[col_name] = cleaner.get_cleaned_column()
+        cleaner = ColumnCleaner(df[var_name], clean_steps)
+        df[var_name] = cleaner.get_cleaned_column()
         clean_report = cleaner.get_clean_report()
         print(clean_report)
         pdf_contents.append(clean_report)
 
         # Figure after cleaning
-        fig_after = ColumnVisualizer(df[col_name], col_type=col_type).get_figure()
+        fig_after = ColumnVisualizer(df[var_name], col_type=col_type).get_figure()
         pdf_contents.append((fig_after, fig_size))
 
     # Missing number report
-    missing_count = df[col_name].isna().sum()
+    missing_count = df[var_name].isna().sum()
     missing_report = 'There are {:d} ({:.2f}%) missing records.'.format(
         missing_count, missing_count / len(df) * 100
     )
     print(missing_report)
     pdf_contents.append(missing_report)
 
+    # Has additional reports
+    if additional_reports:
+        pdf_contents += additional_reports
+
     # Build report
     if not pdf_filename:
-        pdf_filename = '{}.pdf'.format(col_name)
-    ReportBuilder(pdf_contents, title=col_name, filename=pdf_filename).build_report()
+        pdf_filename = './EDA_reports/{}.pdf'.format(var_name)
+
+    ReportBuilder(
+        pdf_contents, title=var_name,
+        subtitle=var_description, filename=pdf_filename
+    ).build_report()
 
     return df
