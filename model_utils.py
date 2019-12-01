@@ -61,7 +61,7 @@ def preprocess(df, var_type_df, y_var, x_var_to_drop, test_size=0.25):
 
     # Split train/test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
-    print('Train size: {}\nTest size: {}'.format(len(y_train), len(y_test)))
+    print('Train size: {}\nTest size: {}\n'.format(len(y_train), len(y_test)))
 
     return X_train, X_test, y_train, y_test
 
@@ -108,7 +108,7 @@ def xgb_grid_search(X_train, y_train, cv=5, scoring='f1', parameters=None):
     # Print best parameters and score
     print("Best parameter:")
     print(clf.best_params_)
-    print("Best score: {:.4f}".format(clf.best_score_))
+    print("Best score: {:.4f}\n".format(clf.best_score_))
 
     return clf.best_estimator_
 
@@ -150,7 +150,6 @@ def report(model, X, y_true):
     print('Accuracy: {}'.format(accuracy_score(y_true, y_pred)))
     print('F1 Score: {}'.format(f1_score(y_true, y_pred)))
     print(classification_report(y_true, y_pred))
-    print()
 
 
 def interpret_model(model, X, print_top=True, output_folder='.'):
@@ -236,6 +235,6 @@ def interpret_model(model, X, print_top=True, output_folder='.'):
 
     # Print top 20 features with highest mean abs SHAP score
     if print_top:
-        print(feature_importance_df.head(10))
+        print(feature_importance_df.head(20))
 
     return feature_importance_df
