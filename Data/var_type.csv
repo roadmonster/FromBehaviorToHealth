@@ -1,7 +1,6 @@
 Variable,Type
 DIABETE3,Binary
 CVD,Binary
-_LLCPWT,Continuous
 DIABAGE2,Continuous
 PDIABTST,Binary
 PREDIAB1,Binary
@@ -36,12 +35,12 @@ NUMHHOL3,Binary
 NUMPHON3,Continuous
 CPDEMO1B,Continuous
 VETERAN3,Binary
-EMPLOY1, Multi categorical
+EMPLOY1,Multicategorical
 CHILDREN,Continuous
-INCOME2,Multi categorical
-_RACE,Multi categorical
-_AGEG5YR,Multi categorical
-GENHLTH,Multi categorical
+INCOME2,Multicategorical
+_RACE,Multicategorical
+_AGEG5YR,Multicategorical
+GENHLTH,Multicategorical
 PHYSHLTH,Continuous
 MENTHLTH,Continuous
 POORHLTH,Continuous
@@ -53,7 +52,7 @@ CHCCOPD1,Binary
 HAVARTH3,Binary
 ADDEPEV2,Binary
 CHCKDNY1,Binary
-WTKG3,Multicategorical
+WTKG3,Continuous
 HTM4,Continuous
 _BMI5,Continuous
 _BMI5CAT,Multicategorical
@@ -186,6 +185,4 @@ RCSRLTN2,Multicategorical
 CASTHDX2,Binary
 CASTHNO2,Binary
 _CHISPNC,Binary
-_CRACE1,,Multicategorical
-
-
+_CRACE1,Multicategorical
