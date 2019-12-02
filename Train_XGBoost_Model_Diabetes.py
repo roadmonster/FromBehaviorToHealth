@@ -25,10 +25,10 @@ if __name__ == "__main__":
         X_train, y_train,
         model_save_path='model_output/{}.joblib'.format(y_var),
         parameters={
-            'max_depth': np.arange(5, 9),
-            'n_estimators': [150, 300, 450],
-            'learning_rate': [0.1, 0.25, 0.5],
-            'colsample': [0.75, 0.85, 0.95]
+            'max_depth': np.arange(4, 7),
+            'n_estimators': [150, 250, 350],
+            'learning_rate': [0.05, 0.1, 0.25],
+            'colsample': [0.6, 0.7, 0.8]
         }
     )
 
