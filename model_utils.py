@@ -4,12 +4,13 @@ os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import shap
 import numpy as np
 import pandas as pd
+import scikitplot as skplt
 import matplotlib.pyplot as plt
 from functools import reduce
 from joblib import dump, load
 from xgboost import XGBClassifier, plot_importance
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, f1_score, classification_report
+from sklearn.metrics import accuracy_score, f1_score, classification_report, roc_auc_score
 
 
 def get_var_list_of_type(var_type_df, target_type):
@@ -21,7 +22,10 @@ def get_var_list_of_type(var_type_df, target_type):
     )
 
 
-def preprocess(df, var_type_df, y_var, x_var_to_drop, test_size=0.25):
+def preprocess(
+    df, var_type_df, y_var, x_var_to_drop, 
+    test_size=0.2, save=True, save_path='.'
+):
     """
     Preprocess data with following steps:
     1. Drop rows contains NA values in y column.
@@ -63,6 +67,25 @@ def preprocess(df, var_type_df, y_var, x_var_to_drop, test_size=0.25):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
     print('Train size: {}\nTest size: {}\n'.format(len(y_train), len(y_test)))
 
+    # Save data
+    if save:
+        data_path = os.path.join(save_path, 'data.h5')
+        # Remove old data if exist
+        if os.path.exists(data_path):
+            os.remove(data_path)
+
+        # Create target folder if not exist
+        if '/' in data_path:
+            folder = data_path[:data_path.rfind('/')]
+            if not os.path.exists(folder):
+                os.makedirs(folder)   
+        
+        # Save data
+        X_train.to_hdf(data_path, key='X_train', complevel=5)
+        y_train.to_hdf(data_path, key='y_train', complevel=5)
+        X_test.to_hdf(data_path, key='X_test', complevel=5)
+        y_test.to_hdf(data_path, key='y_test', complevel=5)
+
     return X_train, X_test, y_train, y_test
 
 
@@ -78,7 +101,7 @@ def save_model(model, save_path):
     dump(model, save_path)
 
 
-def xgb_grid_search(X_train, y_train, cv=5, scoring='f1', parameters=None):
+def xgb_grid_search(X_train, y_train, cv=5, scoring='roc_auc', parameters=None):
     """
     Perform grid search for XGBoost classification model.
     Returns the best classifier.
@@ -116,7 +139,7 @@ def xgb_grid_search(X_train, y_train, cv=5, scoring='f1', parameters=None):
 def train(
     X_train, y_train,
     model_save_path=None, retrain=False,
-    cv=5, scoring='f1', parameters=None
+    cv=5, scoring='roc_auc', parameters=None
 ):
     """Train or load existing model."""
     # Retrain flag on, always retrain model
@@ -144,12 +167,37 @@ def train(
     return clf
 
 
-def report(model, X, y_true):
-    """Report model on accuracy, F1 score, and precision/recall table"""
+def report(
+    model, X, y_true, save_folder='.', 
+    report_name='Classification_Report.txt', roc_fig_name='ROC.png'
+):
+    """Report model on accuracy, F1 score, AUC_ROC Score, and precision/recall table"""
+    # Create target folder if not exist
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder)
+
+    # Make prediction
     y_pred = model.predict(X)
-    print('Accuracy: {}'.format(accuracy_score(y_true, y_pred)))
-    print('F1 Score: {}'.format(f1_score(y_true, y_pred)))
-    print(classification_report(y_true, y_pred))
+    y_pred_proba = model.predict_proba(X)
+
+    # Generate text report of metrics
+    ac_report = 'Accuracy: {}'.format(accuracy_score(y_true, y_pred))
+    f1_report = 'F1 Score: {}'.format(f1_score(y_true, y_pred))
+    auc_report = 'ROC AUC Score: {}'.format(roc_auc_score(y_true, y_pred_proba[:, 1]))
+    cls_report = classification_report(y_true, y_pred)
+    report = '\n'.join([ac_report, f1_report, auc_report, cls_report])
+    with open(os.path.join(save_folder, report_name), 'w') as fw:
+        fw.write(report)
+
+    # Generate ROC Curve
+    fig_path = os.path.join(save_folder, roc_fig_name)
+    skplt.metrics.plot_roc(
+        y_true, y_pred_proba, 
+        figsize=[8, 10], plot_micro=False 
+    )
+    plt.savefig(fig_path, bbox_inches='tight')
+
+    return report
 
 
 def interpret_model(model, X, print_top=True, output_folder='.'):
@@ -165,9 +213,8 @@ def interpret_model(model, X, print_top=True, output_folder='.'):
        https://arxiv.org/abs/1905.04610
     2. Gain
        The average training loss reduction gained when using a feature for splitting.
-    3. Cover
-       The number of times a feature is used to split the data across all trees
-       weighted by the number of training data points that go through those splits.
+    3. Weight
+       The number of times a feature is used to split the data across all trees.
 
     Also produces a SHAP distribution plot of top 20 variables,
     which helps to explain the correlation of the impact of variable vs. the value of variable.
@@ -205,7 +252,7 @@ def interpret_model(model, X, print_top=True, output_folder='.'):
     )
 
     # Feature importance from XGBoost - gain and cover
-    for c in ['gain', 'cover']:
+    for c in ['gain', 'weight']:
         # Get feature importance scores from model
         score_df = pd.DataFrame(
             model.get_booster().get_score(importance_type=c).items(),
