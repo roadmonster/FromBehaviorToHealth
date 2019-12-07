@@ -1,0 +1,64 @@
+Preprocessing...
+Number of records: 436580
+Number of features: 538
+Train size: 349264
+Test size: 87316
+
+Start Grid Search...
+Fitting 5 folds for each of 192 candidates, totalling 960 fits
+[Parallel(n_jobs=-1)]: Using backend LokyBackend with 64 concurrent workers.
+[Parallel(n_jobs=-1)]: Done  72 tasks      | elapsed: 104.9min
+[Parallel(n_jobs=-1)]: Done 322 tasks      | elapsed: 401.3min
+[Parallel(n_jobs=-1)]: Done 672 tasks      | elapsed: 810.4min
+[Parallel(n_jobs=-1)]: Done 960 out of 960 | elapsed: 1147.0min finished
+Best parameter:
+{'colsample': 0.65, 'learning_rate': 0.1, 'max_depth': 6, 'n_estimators': 250}
+Best score: 0.8210
+
+Train:
+Accuracy: 0.8715126666361263
+F1 Score: 0.3458881147421508
+ROC AUC Score: 0.8533483388447483
+              precision    recall  f1-score   support
+
+         0.0       0.88      0.98      0.93    297614
+         1.0       0.70      0.23      0.35     51650
+
+    accuracy                           0.87    349264
+   macro avg       0.79      0.61      0.64    349264
+weighted avg       0.85      0.87      0.84    349264
+
+Test:
+Accuracy: 0.8616061202986852
+F1 Score: 0.29316799251286846
+ROC AUC Score: 0.8202410548294363
+              precision    recall  f1-score   support
+
+         0.0       0.87      0.98      0.92     74406
+         1.0       0.60      0.19      0.29     12910
+
+    accuracy                           0.86     87316
+   macro avg       0.74      0.59      0.61     87316
+weighted avg       0.83      0.86      0.83     87316
+
+        variable  mean(|SHAP|)        gain  weight
+0          _BMI5      0.290083   56.271199   955.0
+1       PNEUVAC4      0.246307  151.764025   186.0
+2    GENHLTH_1.0      0.215565  187.438535    97.0
+3   CHECKUP1_1.0      0.192156  141.042327   134.0
+4    GENHLTH_2.0      0.191416  185.762068    92.0
+5   RMVTETH4_0.0      0.115797  267.022558    46.0
+6        ALCDAY5      0.110556   62.102220   192.0
+7      _RACE_1.0      0.102761   45.049406   117.0
+8            CVD      0.093896  122.223714   118.0
+9       BLDSTOOL      0.088537  124.084708    93.0
+10  PERSDOC2_0.0      0.087854   55.539136    76.0
+11      FALL12MN      0.086159   46.051677   243.0
+12      DIFFWALK      0.084762  520.182117    79.0
+13   GENHLTH_4.0      0.074217  101.660720   101.0
+14         WTKG3      0.073675   16.340084   593.0
+15  _AGEG5YR_1.0      0.059232   63.293707    55.0
+16      CHCKDNY1      0.052876   57.841104   140.0
+17   EMPLOY1_7.0      0.049120   46.316206    63.0
+18   GENHLTH_5.0      0.040119   56.384272    84.0
+19      EXERANY2      0.038051   17.917702    80.0
