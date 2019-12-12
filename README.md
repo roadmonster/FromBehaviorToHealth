@@ -1,5 +1,10 @@
-This is a repo for CPSC 5305 Team Project - From Behavior to Health
+This is a repo for 2019 Fall CPSC 5305 Team Project - Predict Diabetes with Demographics, Behaviors and Health Conditions
 
-Chronic disease in the United States is a considerable burden for patients and health insurance payers. Chronic diseases can lead to high medical bills, impaired physical mobility, and increased risk of sudden death, ultimately causing a decline in the quality of life of patients. The factors that cause chronic diseases are the complex effects of genes and acquired environments, which leaves room for interventions to prevent or reduce chronical disease. Human daily behaviors, including diet, sleep, and exercise, are important environmental factors for chronic diseases. The goal of this project is to study how could interventions of daily behaviors improve health conditions regarding chronic diseases in the population level and quantify the improvement by treatment cost saved.
+Diabetes is a considerable burden for patients and health insurance payers in the United States. Diabetes can lead to high medical bills, impaired physical mobility, and increased risk of sudden death, ultimately causing a decline in the quality of life of patients. The factors that cause diabetes are the complex effects of genes and acquired environments. Demographics and daily human behaviors, including diet, sleep, and exercise, are important environmental factors for diabetes. Additionally, current health conditions other than diabetes, such as cancers, CVD, as well as medications and treatments, can also have correlations with diabetes.
 
-For this project, we choose diabetes and cardiovascular diseases (CVD) as target chronic health conditions. We will analyze possible interventions on behaviors and quantify the improvement of health conditions of the population in Seattle, on both city level and zipcode level.
+The goal of this project is to build a predictive model for diabetes using demographics plus daily behaviors plus health conditions, then identify important variables in predicting diabetes. Finally, study the correlations between diabetes and important features. These important features could be valuable in further studies on causal relations.
+
+Project Report: https://github.com/yf23/FromBehaviorToHealth/blob/master/Handins/Data_Science_Final_Report.pdf
+
+Project EDA Record: https://github.com/yf23/FromBehaviorToHealth/blob/master/EDA_Reports_All_Variables.pdf
+
